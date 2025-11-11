@@ -76,7 +76,8 @@ jobs:
 
       - name: Build CLI (Release)
         working-directory: src-tauri
-        run: cargo build --bin cc-switch-cli --release --target ${{ matrix.target }}
+        # Build without default features (gui) to avoid GUI system library dependencies
+        run: cargo build --bin cc-switch-cli --release --target ${{ matrix.target }} --no-default-features
 
       - name: Prepare release asset
         shell: bash
@@ -111,6 +112,8 @@ jobs:
 
             Terminal-based interface for managing Claude Code & Codex provider configurations.
 
+            **✨ No GUI dependencies required** - This CLI build runs standalone without needing GTK, WebKit, or other GUI system libraries.
+
             ### Download
 
             **Windows:**
@@ -120,6 +123,7 @@ jobs:
             - `cc-switch-cli-${{ github.ref_name }}-x86_64-unknown-linux-gnu.tar.gz`
 
             **macOS:**
+            - `cc-switch-cli-${{ github.ref_name }}-universal-apple-darwin.tar.gz` (Universal Binary - Apple Silicon + Intel)
             - `cc-switch-cli-${{ github.ref_name }}-aarch64-apple-darwin.tar.gz` (Apple Silicon)
             - `cc-switch-cli-${{ github.ref_name }}-x86_64-apple-darwin.tar.gz` (Intel)
 
@@ -130,6 +134,7 @@ jobs:
             - ✅ Keyboard-driven TUI interface
             - ✅ Tab navigation between Claude and Codex
             - ✅ Built-in help screen (press `?`)
+            - ✅ Minimal dependencies (no GUI libraries required)
 
             ### Quick Start
 
@@ -145,11 +150,16 @@ jobs:
             ### Keyboard Shortcuts
 
             - `↑/k`, `↓/j` - Navigate
+            - `Tab`/`Shift+Tab` - Switch tabs
+            - `1`/`2` - Jump to Claude/Codex tab
             - `Enter` - Switch provider
             - `a` - Add provider
             - `e` - Edit provider
             - `d` - Delete provider
             - `m` - MCP management
+            - `Space` - Toggle MCP server (in MCP mode)
+            - `i` - Import from live config (in MCP mode)
+            - `s` - Sync to live config (in MCP mode)
             - `?` - Help
             - `q` - Quit
           files: release-assets/*
@@ -171,9 +181,10 @@ jobs:
 
       - name: Build for both architectures
         working-directory: src-tauri
+        # Build without default features (gui) to avoid GUI system library dependencies
         run: |
-          cargo build --bin cc-switch-cli --release --target aarch64-apple-darwin
-          cargo build --bin cc-switch-cli --release --target x86_64-apple-darwin
+          cargo build --bin cc-switch-cli --release --target aarch64-apple-darwin --no-default-features
+          cargo build --bin cc-switch-cli --release --target x86_64-apple-darwin --no-default-features
 
       - name: Create universal binary
         run: |

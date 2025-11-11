@@ -1,11 +1,14 @@
 mod app_config;
+#[cfg(feature = "gui")]
 mod app_store;
 mod claude_mcp;
 mod claude_plugin;
 mod codex_config;
+#[cfg(feature = "gui")]
 mod commands;
 mod config;
 mod error;
+#[cfg(feature = "gui")]
 mod init_status;
 mod mcp;
 mod provider;
@@ -16,6 +19,7 @@ mod usage_script;
 
 pub use app_config::{AppType, MultiAppConfig};
 pub use codex_config::{get_codex_auth_path, get_codex_config_path, write_codex_live_atomic};
+#[cfg(feature = "gui")]
 pub use commands::*;
 pub use config::{get_claude_mcp_path, get_claude_settings_path, read_json_file};
 pub use error::AppError;
@@ -27,14 +31,18 @@ pub use services::{ConfigService, EndpointLatency, McpService, ProviderService, 
 pub use settings::{update_settings, AppSettings};
 pub use store::AppState;
 
+// ==================== GUI-specific code (Tauri) ====================
+#[cfg(feature = "gui")]
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuBuilder, MenuItem},
     tray::{TrayIconBuilder, TrayIconEvent},
 };
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "gui", target_os = "macos"))]
 use tauri::{ActivationPolicy, RunEvent};
+#[cfg(feature = "gui")]
 use tauri::{Emitter, Manager};
 
+#[cfg(feature = "gui")]
 #[derive(Clone, Copy)]
 struct TrayTexts {
     show_main: &'static str,
@@ -42,6 +50,7 @@ struct TrayTexts {
     quit: &'static str,
 }
 
+#[cfg(feature = "gui")]
 impl TrayTexts {
     fn from_language(language: &str) -> Self {
         match language {
@@ -60,6 +69,7 @@ impl TrayTexts {
 }
 
 /// 创建动态托盘菜单
+#[cfg(feature = "gui")]
 fn create_tray_menu(
     app: &tauri::AppHandle,
     app_state: &AppState,
@@ -201,7 +211,7 @@ fn create_tray_menu(
         .map_err(|e| AppError::Message(format!("构建菜单失败: {}", e)))
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "gui", target_os = "macos"))]
 fn apply_tray_policy(app: &tauri::AppHandle, dock_visible: bool) {
     let desired_policy = if dock_visible {
         ActivationPolicy::Regular
@@ -219,6 +229,7 @@ fn apply_tray_policy(app: &tauri::AppHandle, dock_visible: bool) {
 }
 
 /// 处理托盘菜单事件
+#[cfg(feature = "gui")]
 fn handle_tray_menu_event(app: &tauri::AppHandle, event_id: &str) {
     log::info!("处理托盘菜单事件: {}", event_id);
 
@@ -291,6 +302,7 @@ fn handle_tray_menu_event(app: &tauri::AppHandle, event_id: &str) {
 //
 
 /// 内部切换供应商函数
+#[cfg(feature = "gui")]
 fn switch_provider_internal(
     app: &tauri::AppHandle,
     app_type: crate::app_config::AppType,
@@ -326,6 +338,7 @@ fn switch_provider_internal(
 }
 
 /// 更新托盘菜单的Tauri命令
+#[cfg(feature = "gui")]
 #[tauri::command]
 async fn update_tray_menu(
     app: tauri::AppHandle,
@@ -347,6 +360,7 @@ async fn update_tray_menu(
     }
 }
 
+#[cfg(feature = "gui")]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
